@@ -346,6 +346,39 @@ initialize_vqfx()
 #        fi
 #    done
     ssh $host "cli -c 'configure; $sets; commit'"
+
+    file=vqfx-10000-factory.conf
+    ssh $host "rm -f /etc/config/$file"
+    scp underlay/$file  $host:/etc/config/$file
+}
+
+zeroize_vqfx()
+{
+    local arr=(${vm_address_list[$1-re]})
+    local host=${arr[0]}
+    local port=$(get_vm_console_port "$1-re")
+
+    (
+    sleep 1
+    echo "root"
+    sleep 1
+    echo "Juniper"
+    sleep 1
+    echo "cli"
+    sleep 2
+    echo "request system zeroize"
+    sleep 1
+    echo "yes"
+    ) | telnet 127.0.0.1 $((6000 + $port))
+}
+
+zeroize_vqfx_all()
+{
+    local name
+
+    for name in $vqfx_list; do
+        zeroize_vqfx $name
+    done
 }
 
 initialize_vmx()
@@ -374,6 +407,31 @@ initialize_vmx()
 #        fi
 #    done
     ssh $host "cli -c 'configure; $sets; commit'"
+
+    cat << __EOF__ > /tmp/conf
+set chassis auto-image-upgrade
+set interfaces fxp0 unit 0 family inet dhcp
+__EOF__
+
+    ssh $host "rm -f /etc/config/mx-autoimage.conf"
+    scp /tmp/conf $host:/etc/config/mx-autoimage.conf
+}
+
+zeroize_vmx()
+{
+    local arr=(${vm_address_list[$1-re]})
+    local host=${arr[0]}
+
+    ssh $host "cli -c 'configure; load factory-default; commit'"
+}
+
+zeroize_vmx_all()
+{
+    local name
+
+    for name in $vmx_list; do
+        zeroize_vmx $name
+    done
 }
 
 add_license_vmx()
@@ -856,66 +914,62 @@ main()
             ;;
         launch-vmx)
             shift
-            if [ $1 ]; then
-                launch_vmx "$@"
-            else
-                launch_vmx_all
+            if [ $1 ]; then launch_vmx "$@"
+            else launch_vmx_all
             fi
             ;;
         configure-vmx)
             shift
-            if [ $1 ]; then
-                configure_vmx "$@"
-            else
-                configure_vmx_all
+            if [ $1 ]; then configure_vmx "$@"
+            else configure_vmx_all
+            fi
+            ;;
+        zeroize-vmx)
+            shift
+            if [ $1 ]; then zeroize_vmx "$@"
+            else zeroize_vmx_all
             fi
             ;;
         delete-vmx)
             shift
-            if [ $1 ]; then
-                delete_vmx "$@"
-            else
-                delete_vmx_all
+            if [ $1 ]; then delete_vmx "$@"
+            else delete_vmx_all
             fi
             ;;
         launch-vqfx)
             shift
-            if [ $1 ]; then
-                launch_vqfx "$@"
-            else
-                launch_vqfx_all
+            if [ $1 ]; then launch_vqfx "$@"
+            else launch_vqfx_all
             fi
             ;;
         configure-vqfx)
             shift
-            if [ $1 ]; then
-                configure_vqfx "$@"
-            else
-                configure_vqfx_all
+            if [ $1 ]; then configure_vqfx "$@"
+            else configure_vqfx_all
+            fi
+            ;;
+        zeroize-vqfx)
+            shift
+            if [ $1 ]; then zeroize_vqfx "$@"
+            else zeroize_vqfx_all
             fi
             ;;
         delete-vqfx)
             shift
-            if [ $1 ]; then
-                delete_vqfx "$@"
-            else
-                delete_vqfx_all
+            if [ $1 ]; then delete_vqfx "$@"
+            else delete_vqfx_all
             fi
             ;;
         launch-bms)
             shift
-            if [ $1 ]; then
-                launch_vm "$@"
-            else
-                launch_bms_all
+            if [ $1 ]; then launch_vm "$@"
+            else launch_bms_all
             fi
             ;;
         delete-bms)
             shift
-            if [ $1 ]; then
-                delete_vm "$@"
-            else
-                delete_bms_all
+            if [ $1 ]; then delete_vm "$@"
+            else delete_bms_all
             fi
             ;;
         launch-builder)
