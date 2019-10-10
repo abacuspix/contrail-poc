@@ -24,55 +24,61 @@ vmx_list="vmx-1"
 bms_list="bms-12 bms-22 bms-dh"
 
 #####################################################
-vm_role[vqfx-spine-1-re]=vqfx-re
-vm_address_list[vqfx-spine-1-re]="10.6.8.21"
-#vm_nic_list[vqfx-spine-1-re]="br=br-int dir=s1-re-em1 br=br-dummy
-#  dir=s1-xe0 dir=s1-xe1 dir=s1-xe2"
-vm_nic_list[vqfx-spine-1-re]="br=br-int br=br-s1-int br=br-dummy
-  br=br-s1-xe0 br=br-s1-xe1 br=br-s1-xe2 br=br-s1-xe3"
+name=vqfx-spine-1-re
+vm_role[$name]=vqfx-re
+vm_address_list[$name]="10.6.8.21"
+#vm_nic_list[$name]="br=br-int dir=s1-re-em1 br=br-dummy
+#    dir=s1-xe0 dir=s1-xe1 dir=s1-xe2"
+vm_nic_list[$name]="br=br-int br=br-s1-int br=br-dummy
+    br=br-s1-xe0 br=br-s1-xe1 br=br-s1-xe2 br=br-s1-xe3"
 
-vm_role[vqfx-spine-1-pfe]=vqfx-pfe
-vm_nic_model[vqfx-spine-1-pfe]=e1000
-#vm_nic_list[vqfx-spine-1-pfe]="br=br-int dir=s1-pfe-em1"
-vm_nic_list[vqfx-spine-1-pfe]="br=br-int br=br-s1-int"
+name=vqfx-spine-1-pfe
+vm_role[$name]=vqfx-pfe
+vm_nic_model[$name]=e1000
+#vm_nic_list[$name]="br=br-dummy dir=s1-pfe-em1"
+vm_nic_list[$name]="br=br-dummy br=br-s1-int"
 
-vm_role[vqfx-leaf-1-re]=vqfx-re
-vm_address_list[vqfx-leaf-1-re]="10.6.8.11"
-#vm_nic_list[vqfx-leaf-1-re]="br=br-int dir=l1-re-em1 br=br-dummy
+name=vqfx-leaf-1-re
+vm_role[$name]=vqfx-re
+vm_address_list[$name]="10.6.8.11"
+#vm_nic_list[$name]="br=br-int dir=l1-re-em1 br=br-dummy
 #  dir=l1-xe0 dir=l1-xe1 dir=l1-xe2 br=br-r1"
-vm_nic_list[vqfx-leaf-1-re]="br=br-int br=br-l1-int br=br-dummy
+vm_nic_list[$name]="br=br-int br=br-l1-int br=br-dummy
   br=br-s1-xe2 br=br-s2-xe2 br=br-l1-xe2 dir=l1-xe3 br=br-r1"
 
-vm_role[vqfx-leaf-1-pfe]=vqfx-pfe
-vm_nic_model[vqfx-leaf-1-pfe]=e1000
-#vm_nic_list[vqfx-leaf-1-pfe]="br=br-int dir=l1-pfe-em1"
-vm_nic_list[vqfx-leaf-1-pfe]="br=br-int br=br-l1-int"
+name=vqfx-leaf-1-pfe
+vm_role[$name]=vqfx-pfe
+vm_nic_model[$name]=e1000
+#vm_nic_list[$name]="br=br-dummy dir=l1-pfe-em1"
+vm_nic_list[$name]="br=br-dummy br=br-l1-int"
 
-vm_role[vqfx-leaf-2-re]=vqfx-re
-vm_address_list[vqfx-leaf-2-re]="10.6.8.12"
-#vm_nic_list[vqfx-leaf-2-re]="br=br-int dir=l2-re-em1 br=br-dummy
+name=vqfx-leaf-2-re
+vm_role[$name]=vqfx-re
+vm_address_list[$name]="10.6.8.12"
+#vm_nic_list[$name]="br=br-int dir=l2-re-em1 br=br-dummy
 #  dir=l2-xe0 dir=l2-xe1 dir=l2-xe2"
-vm_nic_list[vqfx-leaf-2-re]="br=br-int br=br-l2-int br=br-dummy
+vm_nic_list[$name]="br=br-int br=br-l2-int br=br-dummy
   br=br-s1-xe3 br=br-s2-xe3 br=br-l2-xe2 dir=l2-xe3 br=br-r2"
 
-vm_role[vqfx-leaf-2-pfe]=vqfx-pfe
-vm_nic_model[vqfx-leaf-2-pfe]=e1000
-#vm_nic_list[vqfx-leaf-2-pfe]="br=br-int dir=l2-pfe-em1"
-vm_nic_list[vqfx-leaf-2-pfe]="br=br-int br=br-l2-int"
+name=vqfx-leaf-2-pfe
+vm_role[$name]=vqfx-pfe
+vm_nic_model[$name]=e1000
+#vm_nic_list[$name]="br=br-dummy dir=l2-pfe-em1"
+vm_nic_list[$name]="br=br-dummy br=br-l2-int"
 
-vm_role[vmx-1-re]=vmx-re
-vm_address_list[vmx-1-re]="10.6.8.31"
-#vm_nic_list[vmx-1-re]="br=br-int dir=gw1-re"
-vm_nic_list[vmx-1-re]="br=br-int br=br-gw1-int"
+name=vmx-1-re
+vm_role[$name]=vmx-re
+vm_address_list[$name]="10.6.8.31"
+#vm_nic_list[$name]="br=br-int dir=gw1-re"
+vm_nic_list[$name]="br=br-int br=br-gw1-int"
 
-vm_role[vmx-1-pfe]=vmx-pfe
-vm_disk_bus[vmx-1-pfe]=ide
-#vm_nic_list[vmx-1-pfe]="br=br-int dir=gw1-pfe
+name=vmx-1-pfe
+vm_role[$name]=vmx-pfe
+vm_disk_bus[$name]=ide
+#vm_nic_list[$name]="br=br-dummy dir=gw1-pfe
 #  br=br-ext dir=gw1-ge1"
-vm_nic_list[vmx-1-pfe]="br=br-int br=br-gw1-int
+vm_nic_list[$name]="br=br-dummy br=br-gw1-int
   br=br-ext br=br-s1-xe0"
-vm_spec_arg[vmx-1-pfe]="--memorybacking hugepages=yes
-  --numatune nodeset=0 --cpu host"
 
 #####################################################
 vm_role[bms-12]=cirros
