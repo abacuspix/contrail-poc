@@ -17,6 +17,7 @@ instances:
       analytics_snmp:
       analytics_database:
       webui:
+      dhcp:
   openstack-1:
     provider: bms
     ip: 10.6.8.2
