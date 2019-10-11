@@ -301,6 +301,16 @@ __EOF__
     fi
 }
 
+stop_dhcp_server()
+{
+    echo "Stop DHCP server."
+    if [ "$host_os" == "CentOS Linux" ]; then
+        systemctl stop dhcpd
+    elif [ "$host_os" == "Ubuntu" ]; then
+        systemctl stop isc-dhcp-server
+    fi
+}
+
 add_host_in_hosts()
 {
     local arr
@@ -352,24 +362,91 @@ initialize_vqfx()
     scp underlay/$file  $host:/etc/config/$file
 }
 
+get_serial_num()
+{
+    local port_offset=$(get_vm_console_port "$1-re")
+    local port=$((6000 + $port_offset))
+
+    (
+    sleep 1; echo "root"
+    sleep 1; echo "Juniper"
+    sleep 1; echo "cli -c 'show chassis hardware'"
+    sleep 1; echo exit
+    ) | telnet 127.0.0.1 $port | awk "/Chassis/"'{print $2}'
+}
+
+get_em0()
+{
+    local port=$1
+
+    (
+    sleep 1; echo "root"
+    sleep 1; echo "Juniper"
+    sleep 1; echo "cli -c 'show interface em0 terse'"
+    sleep 1; echo exit
+    ) | telnet 127.0.0.1 $port | awk "/em0.0/"'{print $1}'
+}
+
+get_xe0()
+{
+    local port=$1
+
+    (
+    sleep 1; echo "root"
+    sleep 1; echo "Juniper"
+    sleep 1; echo "cli -c 'show interface xe-0/0/0 terse'"
+    sleep 1; echo exit
+    ) | telnet 127.0.0.1 $port | awk "/xe-0\/0\/0.16386/"'{print $1}'
+}
+
+wait_for_vqfx_zero()
+{
+    local name=$1
+    local port_offset=$(get_vm_console_port "$name-re")
+    local port=$((6000 + $port_offset))
+    local interface
+
+    while (( 1 )); do
+        echo
+        echo "Check $name RE on $port..."
+        interface=$(get_em0 $port)
+        echo "interface: $interface"
+        if [ "$interface" == "em0.0" ]; then
+            break
+        fi
+        sleep 5
+    done
+    while (( 1 )); do
+        echo
+        echo "Check $name PFE on $port..."
+        interface=$(get_xe0 $port)
+        echo "interface: $interface"
+        if [ "$interface" == "xe-0/0/0.16386" ]; then
+            break
+        fi
+        sleep 5
+    done
+}
+
 zeroize_vqfx()
 {
     local arr=(${vm_address_list[$1-re]})
     local host=${arr[0]}
-    local port=$(get_vm_console_port "$1-re")
+    local port_offset=$(get_vm_console_port "$1-re")
+    local port=$((6000 + $port_offset))
+    local no_wait=$2
 
     (
-    sleep 1
-    echo "root"
-    sleep 1
-    echo "Juniper"
-    sleep 1
-    echo "cli"
-    sleep 2
-    echo "request system zeroize"
-    sleep 1
-    echo "yes"
-    ) | telnet 127.0.0.1 $((6000 + $port))
+    sleep 1; echo "root"
+    sleep 1; echo "Juniper"
+    sleep 1; echo "cli"
+    sleep 2; echo "request system zeroize"
+    sleep 1; echo "yes"
+    ) | telnet 127.0.0.1 $port
+
+    if [ -z "$no_wait" ]; then
+        wait_for_vqfx_zero $1
+    fi
 }
 
 zeroize_vqfx_all()
@@ -377,7 +454,15 @@ zeroize_vqfx_all()
     local name
 
     for name in $vqfx_list; do
-        zeroize_vqfx $name
+        zeroize_vqfx $name no_wait
+    done
+    echo "Waiting for 30 seconds..."
+    sleep 30
+    for name in $vqfx_list; do
+        wait_for_vqfx_zero $name
+    done
+    for name in $vqfx_list; do
+        echo "$name: $(get_serial_num $name)"
     done
 }
 
@@ -457,6 +542,7 @@ launch_vmx()
     wait_for_host $name-re
     initialize_vmx $name
     add_license_vmx $name
+    stop_dhcp_server
 }
 
 launch_vmx_all()
@@ -495,6 +581,7 @@ launch_vqfx()
     launch_vm $name-pfe
     wait_for_host $name-re
     initialize_vqfx $name
+    stop_dhcp_server
 }
 
 launch_vqfx_all()
@@ -1028,6 +1115,11 @@ main()
             ;;
         post-underlay)
             post_underlay
+            ;;
+        get-serial)
+            shift
+            if [ $1 ]; then get_serial_num "$@"
+            fi
             ;;
         *)
             help
