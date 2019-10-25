@@ -103,6 +103,18 @@ vqfx-pfe.qcow2
 vqfx-re.qcow2
 ```
 
+```
+CentOS-7-x86_64-GenericCloud-1805.qcow2
+    CentOS Linux release 7.5.1804 (Core)
+    3.10.0-862.3.2.el7.x86_64
+
+CentOS-7-x86_64-GenericCloud-1907.qcow2
+    CentOS Linux release 7.6.1810 (Core)
+    3.10.0-957.27.2.el7.x86_64
+
+    3.10.0-1062.1.2.el7.x86_64
+```
+
 
 ## 3.3 AppFormix
 
