@@ -115,6 +115,14 @@ launch_command()
     ssh $host "./builder launch-command $host openstack import_cluster"
 }
  
+install_libvirt_client()
+{
+    local arr=(${vm_address_list[compute-1]})
+
+    echo "Install libvirt-client on compute..."
+    ssh ${arr[0]} yum install -y libvirt-client
+}
+
 launch_appformix()
 {
     local arr=(${vm_address_list[appformix-1]})
@@ -127,6 +135,8 @@ launch_appformix()
         appformix-openstack-images-3.0.0.tar.gz
         appformix-platform-images-3.0.0.tar.gz
         appformix-network_device-images-3.0.0.tar.gz"
+
+    install_libvirt_client
 
     echo "Launch AppFormix..."
     copy_ssh_key $host
