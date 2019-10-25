@@ -268,11 +268,22 @@ build_vm_net_arg()
     fi
 }
 
+get_vm_console_port()
+{
+    local arr=(${vm_address_list[$1]})
+    local addr=${arr[0]}
+
+    IFS='.'; a=(${addr}); unset IFS
+    echo ${a[3]}
+}
+
 build_vm_args()
 {
     local name=$1
-    local role_arg=(${role[$2]})
+    local role_name=$2
+    local role_arg=(${role[$role_name]})
     local virt_args
+    local port=$(get_vm_console_port $name)
 
     build_vm_net_arg $name
     virt_args="--connect qemu:///system --virt-type kvm "
@@ -280,6 +291,18 @@ build_vm_args()
     virt_args+="--ram $((${role_arg[1]} * 1024)) "
     virt_args+="$vm_os_arg $vm_disk_arg $vm_net_arg "
     virt_args+="--graphics vnc,listen=0.0.0.0 --noautoconsole --boot hd "
+
+    case $role_name in
+        vqfx-re | vmx-re )
+        virt_args+="--serial tcp,host=0.0.0.0:$((6000 + $port)),"
+        virt_args+="mode=bind,protocol=telnet "
+        ;;
+        vmx-pfe )
+        virt_args+="--memorybacking hugepages=yes --numatune nodeset=0 "
+        virt_args+="--cpu host "
+        ;;
+    esac
+
     if [ "${vm_spec_arg[$name]}" ]; then
         virt_args+=${vm_spec_arg[$name]}
     fi
@@ -407,9 +430,17 @@ delete_vm()
         virsh undefine $name
     fi
     if [ ${role_arg[3]} == "volume" ]; then
-        virsh vol-list $volume_pool | grep $name > /dev/null 2>&1
-        if (( $? == 0 )); then
-            virsh vol-delete $name $volume_pool
+        pool_state=$(virsh pool-info $volume_pool 2> /dev/null | \
+                awk "/State/"'{print $2 }')
+        if [ "$pool_state" ==  "running" ]; then
+            # Pool is available.
+            virsh vol-list $volume_pool | grep $name > /dev/null 2>&1
+            if (( $? == 0 )); then
+                virsh vol-delete $name $volume_pool
+            fi
+        else
+            # Pool is not available.
+            rm -f $instance_path/$name.qcow2
         fi
     else
         rm -f $instance_path/$name.qcow2
