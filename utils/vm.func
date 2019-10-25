@@ -430,9 +430,17 @@ delete_vm()
         virsh undefine $name
     fi
     if [ ${role_arg[3]} == "volume" ]; then
-        virsh vol-list $volume_pool | grep $name > /dev/null 2>&1
-        if (( $? == 0 )); then
-            virsh vol-delete $name $volume_pool
+        pool_state=$(virsh pool-info $volume_pool 2> /dev/null | \
+                awk "/State/"'{print $2 }')
+        if [ "$pool_state" ==  "running" ]; then
+            # Pool is available.
+            virsh vol-list $volume_pool | grep $name > /dev/null 2>&1
+            if (( $? == 0 )); then
+                virsh vol-delete $name $volume_pool
+            fi
+        else
+            # Pool is not available.
+            rm -f $instance_path/$name.qcow2
         fi
     else
         rm -f $instance_path/$name.qcow2
